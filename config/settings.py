@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'djoser',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'django_otp',
     'django_otp.plugins.otp_totp',
     'users.apps.UsersConfig',
@@ -143,19 +144,14 @@ REST_FRAMEWORK = {
 }
 
 
-DJOSER = {
-    'USER_ID_FIELD': 'email',
-    'LOGIN_FIELD': 'email',
-    'USER_CREATE_PASSWORD_RETYPE': True,
-    'SEND_ACTIVATION_EMAIL': False,
-    "SEND_CONFIRMATION_EMAIL": False,
-
-
-}
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
+
 
 
 CACHES = {
@@ -167,7 +163,6 @@ CACHES = {
 
 
 
-# تنظیمات OTP
 OTP_TOTP_ISSUER = "KetabYar"
 OTP_TOTP_DIGITS = 6
 OTP_TOTP_SECRET = 'django-insecure-#uwt+2jomg7ni3y%zh*@8$35@71t5$sv+v%!zq(%u_wookxd0x'

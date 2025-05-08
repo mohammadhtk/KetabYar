@@ -1,8 +1,43 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import AuthenticationFailed
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import authenticate
 from users.utils.check_password import check_repeat_password
 from django.contrib.auth import  get_user_model
+import logging
+
+logger = logging.getLogger(__name__)
+
 User = get_user_model()
 
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+        logger.debug(f"Attempting login with email: {email}")
+        try:
+            user = User.objects.get(email=email)
+            print(user)
+        except ObjectDoesNotExist:
+            print(1)
+            logger.error(f"Authentication failed for email: {email}")
+            raise ValidationError("No active account found with the given credentials")
+
+        if not user.check_password(password):
+            logger.error(f"Invalid credentials for email: {email}")
+            raise AuthenticationFailed("Invalid credentials")
+
+        if not user.is_active:
+            logger.error(f"User account is inactive for email: {email}")
+            raise AuthenticationFailed("This account is inactive")
+
+        data = super().validate(attrs)
+
+        logger.debug(f"Token successfully generated for email: {email}")
+
+        return data
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -32,6 +67,14 @@ class ActivateSerializer(serializers.Serializer):
 
 class RESENDACTIVATIONSERIALIZER(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+
+class MeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['email', 'firstname', 'lastname']
+
 
 class ResetPasswordCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
