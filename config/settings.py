@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'rest_framework',
+    'djoser',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
     'users.apps.UsersConfig',
 ]
 
@@ -83,6 +86,8 @@ DATABASES = {
 }
 
 
+AUTH_USER_MODEL = 'users.User'
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -126,10 +131,94 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AnonOrReadOnly',
-    )
+        'rest_framework_simplejwt.authentication.JWTAuthentication',),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/min',
+        'user': '10/min',
+    },
+}
+
+
+DJOSER = {
+    'USER_ID_FIELD': 'email',
+    'LOGIN_FIELD': 'email',
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SEND_ACTIVATION_EMAIL': False,
+    "SEND_CONFIRMATION_EMAIL": False,
+
+
+}
+
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'otp-cache'
+    }
+}
+
+
+
+# تنظیمات OTP
+OTP_TOTP_ISSUER = "KetabYar"
+OTP_TOTP_DIGITS = 6
+OTP_TOTP_SECRET = 'django-insecure-#uwt+2jomg7ni3y%zh*@8$35@71t5$sv+v%!zq(%u_wookxd0x'
+
+
+DEFAULT_FROM_EMAIL = "amirhosseinpishroa2001@gmail.com"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'amirhosseinpishroa2001@gmail.com'
+EMAIL_HOST_PASSWORD = 'bzaaegcyjnwxdqgq'
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'app_logs.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'users': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
 }
