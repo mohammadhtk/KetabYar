@@ -8,11 +8,16 @@ Django==5.2
 django-otp==1.6.0
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
+drf-yasg==1.21.10
 idna==3.10
+inflection==0.5.1
 oauthlib==3.2.2
+packaging==25.0
 pycparser==2.22
 PyJWT==2.9.0
 python3-openid==3.2.0
+pytz==2025.2
+PyYAML==6.0.2
 requests==2.32.3
 requests-oauthlib==2.0.0
 social-auth-app-django==5.4.3
@@ -20,4 +25,5 @@ social-auth-core==4.6.1
 sqlparse==0.5.3
 typing_extensions==4.13.2
 tzdata==2025.2
+uritemplate==4.1.1
 urllib3==2.4.0

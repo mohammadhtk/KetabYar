@@ -1,6 +1,5 @@
 from django.urls import path
 from users.views import UserViewSet
-from .serializers import CustomTokenObtainPairSerializer
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -15,8 +14,8 @@ urlpatterns = [
     path("jwt/refresh/", TokenRefreshView.as_view(), name="jwt-refresh"),
     path("jwt/verify/", TokenVerifyView.as_view(), name="jwt-verify"),
 
-    path("activate/<str:email>/", UserViewSet.as_view({"post": "activate"})),
-    path("reset-password/code/", UserViewSet.as_view({"post": "reset_password_code"})),
-    path("reset-password/confirm/", UserViewSet.as_view({"post": "reset_password"})),
+    path("activate/<str:email>/", UserViewSet.as_view({"post": "activate"}), name="user-activate"),
+    path("reset-password/", UserViewSet.as_view({"post": "send_reset_password_code"}), name="reset-password-code"),
+    path("reset-password/code/", UserViewSet.as_view({"post": "reset_password"}), name="reset-password"),
 ]
 

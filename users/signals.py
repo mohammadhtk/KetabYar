@@ -1,7 +1,7 @@
 import logging
+
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
@@ -24,5 +24,4 @@ def send_activation_code_signal(sender, instance, created, **kwargs):
             logger.info(f"Activation code sent to {instance.email}")
         except Exception as e:
             logger.error(f"Failed to send activation code to {instance.email}: {e}")
-
-            raise
+            raise ValueError(f"Failed to send activation code to {instance.email}: {e}")

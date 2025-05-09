@@ -14,12 +14,32 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from pydoc import importfile
+
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import  permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from django.conf import settings
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Ketab YAR API",
+        default_version='v1',
+        terms_of_service="https://www.ketabyar.com",
+        contact=openapi.Contact(email=settings.EMAIL_HOST_USER),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
 
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
 ]
