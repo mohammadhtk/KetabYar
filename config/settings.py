@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-#uwt+2jomg7ni3y%zh*@8$35@71t5$sv+v%!zq(%u_wookxd0x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['mohammadhtavakoli.pythonanywhere.com']
+ALLOWED_HOSTS = ['mohammadhtavakoli.pythonanywhere.com','127.0.0.1']
 
 
 # Application definition
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'users.apps.UsersConfig',
+    'books.apps.BooksConfig',
 ]
 
 MIDDLEWARE = [
@@ -125,7 +126,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+<<<<<<< HEAD
 STATIC_URL = '/static/'
+=======
+STATIC_URL = 'static/'
+>>>>>>> f3838273a97ef93b36b7664f34b6b0c77587cdd5
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
