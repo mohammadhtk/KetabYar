@@ -1,11 +1,16 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from books.utils.book_service import fetch_home_books, search_books_service, get_book_detail, get_all_categories, fetch_books_by_category
-from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from books.utils.swagger_docs import (
+    books_home_schema,
+    search_books_schema,
+    book_detail_schema,
+    all_categories_schema,
+    fetch_category_books_schema
+)
 
 
+@books_home_schema
 @api_view(['GET'])
 def books_home(request):
     limit = int(request.GET.get("limit", 10))
@@ -17,6 +22,7 @@ def books_home(request):
     })
 
 
+@search_books_schema
 @api_view(['POST'])
 def search_books(request):
     query = request.data.get("q", "")
@@ -28,6 +34,7 @@ def search_books(request):
     })
 
 
+@book_detail_schema
 @api_view(['GET'])
 def book_detail(request, book_link):
     data = get_book_detail(book_link)
@@ -40,6 +47,7 @@ def book_detail(request, book_link):
         "data": data
     })
 
+@all_categories_schema
 @api_view(['GET'])
 def all_categories(request):
     return Response({
@@ -49,6 +57,7 @@ def all_categories(request):
     })
 
 
+@fetch_category_books_schema
 @api_view(['POST'])
 def fetch_category_books(request):
     category_link = request.data.get("category")
