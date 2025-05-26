@@ -38,7 +38,8 @@ import requests
 
 
 def get_book_detail(book_link):
-    url = f"https://openlibrary.org{book_link}.json"
+    book_link = book_link.strip('/')
+    url = f"https://openlibrary.org/{book_link}.json"
     res = requests.get(url)
 
     if res.status_code != 200:
