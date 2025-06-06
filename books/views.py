@@ -1,12 +1,14 @@
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from books.utils.book_service import fetch_home_books, search_books_service, get_book_detail, get_all_categories, fetch_books_by_category
+from books.utils.book_service import fetch_home_books, search_books_service, get_book_detail, get_all_categories, fetch_books_by_category, fetch_popular_books
 from books.utils.swagger_docs import (
     books_home_schema,
     search_books_schema,
     book_detail_schema,
     all_categories_schema,
-    fetch_category_books_schema
+    fetch_category_books_schema,
+    popular_books_schema
 )
 
 
@@ -71,3 +73,15 @@ def fetch_category_books(request):
         "data": books
     })
 
+
+class PopularBooksView(APIView):
+    
+    @popular_books_schema
+    def get(self, request):
+        limit = int(request.GET.get('limit', 10))
+        books = fetch_popular_books(limit)
+        return Response({
+            'ok':True,
+            'message':"Got popular books successfully!",
+            'data': books
+        })

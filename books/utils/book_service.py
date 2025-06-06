@@ -85,3 +85,19 @@ def fetch_books_by_category(category_link):
         }
         for book in works
     ]
+
+
+def fetch_popular_books(limit=10):
+    res = requests.get(f'https://openlibrary.org/search.json?q=popular&limit={limit}')
+    data = res.json()
+
+    return [
+        {
+            "title": book.get("title"),
+            "year": book.get("first_publish_year"),
+            "pages": book.get("number_of_pages_median"),
+            "cover": f"https://covers.openlibrary.org/b/id/{book['cover_i']}-M.jpg" if 'cover_i' in book else None,
+            "bookLink": book.get("key")
+        }
+        for book in data.get("docs", [])
+    ]
