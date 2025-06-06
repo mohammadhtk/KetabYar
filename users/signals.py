@@ -1,5 +1,5 @@
 import logging
-
+from django.db import IntegrityError
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models.signals import post_save
