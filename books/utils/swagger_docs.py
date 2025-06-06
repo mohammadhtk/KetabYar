@@ -62,3 +62,18 @@ fetch_category_books_schema = swagger_auto_schema(
         400: openapi.Response(description="Category link is required"),
     }
 )
+
+
+popular_books_schema = swagger_auto_schema(
+    operation_summary="Get popular books",
+    manual_parameters=[
+        openapi.Parameter(
+            'limit',
+            openapi.IN_QUERY,
+            description="Number of books to return",
+            type=openapi.TYPE_INTEGER,
+            required=False,
+            default=10
+        )
+    ]
+)

@@ -38,6 +38,8 @@ import requests
 
 
 def get_book_detail(book_link):
+    import requests
+
     book_link = book_link.strip('/')
     url = f"https://openlibrary.org/{book_link}.json"
     res = requests.get(url)
@@ -46,16 +48,27 @@ def get_book_detail(book_link):
         return None
 
     data = res.json()
+
+    # هندل کردن حالت‌های مختلف description
+    description = data.get("description")
+    if isinstance(description, dict):
+        description = description.get("value")
+    elif not isinstance(description, str):
+        description = None
+
     return {
         "title": data.get("title"),
         "pages": data.get("number_of_pages"),
         "year": data.get("created", {}).get("value", "")[:4],
         "size": None,
         "lang": None,
-        "cover": f"https://covers.openlibrary.org/b/id/{data.get('covers', [])[0]}-M.jpg" if data.get(
-            "covers") else None,
-        "categories": [{"tag": subject, "link": f"/category/{subject.replace(' ', '_')}"} for subject in
-                       data.get("subjects", [])]
+        "description": description,
+        "cover": f"https://covers.openlibrary.org/b/id/{data.get('covers', [])[0]}-M.jpg"
+        if data.get("covers") else None,
+        "categories": [
+            {"tag": subject, "link": f"/category/{subject.replace(' ', '_')}"}
+            for subject in data.get("subjects", [])
+        ]
     }
 
 
@@ -84,4 +97,20 @@ def fetch_books_by_category(category_link):
             )
         }
         for book in works
+    ]
+
+
+def fetch_popular_books(limit=10):
+    res = requests.get(f'https://openlibrary.org/search.json?q=popular&limit={limit}')
+    data = res.json()
+
+    return [
+        {
+            "title": book.get("title"),
+            "year": book.get("first_publish_year"),
+            "pages": book.get("number_of_pages_median"),
+            "cover": f"https://covers.openlibrary.org/b/id/{book['cover_i']}-M.jpg" if 'cover_i' in book else None,
+            "bookLink": book.get("key")
+        }
+        for book in data.get("docs", [])
     ]

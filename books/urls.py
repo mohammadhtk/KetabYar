@@ -11,6 +11,7 @@ from books.utils.swagger_docs import (
 
 urlpatterns = [
     path('home/', views.books_home, name='books-home'),
+    path('home/popular/', views.PopularBooksView.as_view(), name='popular-books'),
     path('search/', views.search_books, name='search-books'),
     path('detail/<path:book_link>/', views.book_detail, name='book-detail'),
     path('categories/', views.all_categories, name='all-categories'),
