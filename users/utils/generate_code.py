@@ -14,7 +14,7 @@ def generate_code(email, action_type):
 
 
 def validate_code(email, action_type, input_code):
-    print()
+    input_code = str(input_code)
     cached_code = cache.get(f"{action_type}_{email}_{input_code}")
     print(cached_code)
     if cached_code:
