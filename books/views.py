@@ -1,15 +1,10 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from books.utils.book_service import fetch_home_books, search_books_service, get_book_detail, get_all_categories, fetch_books_by_category, fetch_popular_books
-from books.utils.swagger_docs import (
-    books_home_schema,
-    search_books_schema,
-    book_detail_schema,
-    all_categories_schema,
-    fetch_category_books_schema,
-    popular_books_schema
-)
+from rest_framework.permissions import IsAuthenticated
+from .serializer import BookStatusSerializer
+from books.utils.book_service import *
+from books.utils.swagger_docs import *
 
 
 @books_home_schema
@@ -75,7 +70,7 @@ def fetch_category_books(request):
 
 
 class PopularBooksView(APIView):
-    
+
     @popular_books_schema
     def get(self, request):
         limit = int(request.GET.get('limit', 10))
@@ -85,3 +80,38 @@ class PopularBooksView(APIView):
             'message':"Got popular books successfully!",
             'data': books
         })
+
+
+@user_book_statuses_schema
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_book_statuses_api(request):
+    queryset = get_user_book_statuses(request.user)
+    serializer = BookStatusSerializer(queryset, many=True)
+    return Response(serializer.data)
+
+
+@set_book_status_schema
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def set_book_status_api(request):
+    data = request.data
+    openlibrary_id = data.get("openlibrary_id")
+    status = data.get("status")
+
+    if not openlibrary_id or not status:
+        return Response(
+            {"detail": "Both 'openlibrary_id' and 'status' are required."},
+            status=400
+        )
+
+    instance = set_or_update_book_status(request.user, openlibrary_id, status)
+    serializer = BookStatusSerializer(instance)
+    return Response(serializer.data)
+
+@related_books_schema
+@api_view(['GET'])
+def get_related_books_view(request, openlibrary_id):
+    limit = request.query_params.get("limit", 5)
+    books = get_related_books_by_subject(openlibrary_id, limit=int(limit))
+    return Response(books)

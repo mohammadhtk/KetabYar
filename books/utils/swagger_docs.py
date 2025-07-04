@@ -77,3 +77,41 @@ popular_books_schema = swagger_auto_schema(
         )
     ]
 )
+
+
+# Related books
+related_books_schema = swagger_auto_schema(
+    method='get',
+    operation_summary="Get related books by OpenLibrary ID",
+    manual_parameters=[
+        openapi.Parameter(
+            'openlibrary_id',
+            openapi.IN_PATH,
+            description="OpenLibrary work ID",
+            type=openapi.TYPE_STRING,
+            required=True
+        )
+    ],
+    responses={200: openapi.Response(description="Related books list")}
+)
+
+# User book statuses
+user_book_statuses_schema = swagger_auto_schema(
+    method='get',
+    operation_summary="Get saved/in-progress/finished books of user",
+    responses={200: openapi.Response(description="List of user book statuses")}
+)
+
+set_book_status_schema = swagger_auto_schema(
+    method='post',
+    operation_summary="Set or update a book status for user",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['openlibrary_id', 'status'],
+        properties={
+            'openlibrary_id': openapi.Schema(type=openapi.TYPE_STRING, description='OpenLibrary work ID'),
+            'status': openapi.Schema(type=openapi.TYPE_STRING, enum=['saved', 'in_progress', 'finished'])
+        }
+    ),
+    responses={200: openapi.Response(description="Book status updated")}
+)

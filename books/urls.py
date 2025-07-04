@@ -1,12 +1,5 @@
 from django.urls import path
 from . import views
-from books.utils.swagger_docs import (
-    books_home_schema,
-    search_books_schema,
-    book_detail_schema,
-    all_categories_schema,
-    fetch_category_books_schema
-)
 
 
 urlpatterns = [
@@ -16,5 +9,8 @@ urlpatterns = [
     path('detail/<path:book_link>/', views.book_detail, name='book-detail'),
     path('categories/', views.all_categories, name='all-categories'),
     path('fetch-category/', views.fetch_category_books, name='fetch-category-books'),
+    path('user-books/statuses/', views.user_book_statuses_api, name='user-book-statuses'),
+    path('user-books/set-status/', views.set_book_status_api, name='set-book-status'),
+    path('related/<str:openlibrary_id>/', views.get_related_books_view, name='related-books'),
 
 ]
