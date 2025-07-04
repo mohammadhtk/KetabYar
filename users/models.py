@@ -4,6 +4,8 @@ from datetime import timezone, timedelta
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
 
+import uuid
+import os
 
 # Create your models here.
 
@@ -27,10 +29,16 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+# upload profile image to media/users/profile_images
+def profile_image_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    return f'profiles/{instance.user.id}/{uuid.uuid4().hex}.{ext}'
+
 class User(AbstractUser):
     username = None
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
+    avatar = models.ImageField(upload_to=profile_image_upload_path, null=True, blank=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
