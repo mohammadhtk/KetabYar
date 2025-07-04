@@ -3,14 +3,14 @@ from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
+from rest_framework import serializers
 from users.serializers import (
     RegisterSerializer,
     ActivateSerializer,
     ResendActivationSerializer,
     MeSerializer,
-    ResetPasswordCodeSerializer,
-    ResetPasswordSerializer, SendResetPasswordCodeSerializer
+    SendResetPasswordCodeSerializer,
+    ResetPasswordWithCodeSerializer
 )
 from users.utils.check_password import check_repeat_password
 from users.utils.generate_code import validate_code
@@ -27,24 +27,24 @@ class UserViewSet(viewsets.GenericViewSet):
     lookup_field = 'email'
 
     def get_permissions(self):
-        if self.action in ['me', 'reset_password_code', 'reset_password', 'send_reset_password_code']:
+        if self.action in ['me']:
             return [IsAuthenticated()]
         return [AllowAny()]
 
     def get_serializer_class(self):
         if self.action == 'activate':
             return ActivateSerializer
+        elif self.action == 'send_reset_password_code':
+            return SendResetPasswordCodeSerializer
         elif self.action == 'reset_password_code':
-            return ResetPasswordCodeSerializer
-        elif self.action == 'reset_password':
-            return ResetPasswordSerializer
+            return ResetPasswordWithCodeSerializer
         elif self.action == 'register':
             return RegisterSerializer
         elif self.action == 'resend_activation':
             return ResendActivationSerializer
         elif self.action == 'me':
             return MeSerializer
-        return SendResetPasswordCodeSerializer
+        return serializers.Serializer
 
     @action(detail=False, methods=['post'])
     @transaction.atomic
@@ -96,20 +96,27 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["post"])
-    def reset_password(self, request):
-        user =self.request.user
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def send_reset_password_code(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if not validate_code(user.email, "reset", request.data.get("code")):
-            user.set_password(serializer.validated_data["new_password"])
-            user.save()
-            return Response({"message": "Password changed."}, status=status.HTTP_200_OK)
-        return Response({"message": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        email = serializer.validated_data["email"]
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=False, methods=["post"])
-    def send_reset_password_code(self, request):
-        user = self.request.user
         send_code_email_reset_password(user)
         return Response({"message": "Reset code sent to your email."}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"])
+    def reset_password_code(self, request, email=None):
+        serializer = self.get_serializer(data=request.data, context={"email": email})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.context["user"]
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+        return Response({"message": "Password changed."}, status=status.HTTP_200_OK)
+
 
