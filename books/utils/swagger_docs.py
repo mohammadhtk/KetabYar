@@ -115,3 +115,35 @@ set_book_status_schema = swagger_auto_schema(
     ),
     responses={200: openapi.Response(description="Book status updated")}
 )
+
+genre_recommendations_schema = swagger_auto_schema(
+    method='get',
+    operation_summary="Recommend books by user's favorite genres"
+)
+
+history_recommendations_schema = swagger_auto_schema(
+    method='get',
+    operation_summary="Recommend books based on user's reading history"
+)
+
+prompt_recommendations_schema = swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['prompt'],
+        properties={
+            'prompt': openapi.Schema(type=openapi.TYPE_STRING, description='User input or question')
+        }
+    ),
+    operation_summary="Ask Gemini to recommend books for custom user question"
+)
+
+chat_history_schema = swagger_auto_schema(
+    method='get',
+    operation_summary="List chat history with Gemini",
+    manual_parameters=[
+        openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, default=1),
+        openapi.Parameter('page_size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, default=5)
+    ]
+)
+
