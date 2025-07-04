@@ -18,3 +18,25 @@ class BookStatus(models.Model):
 
     class Meta:
         unique_together = ('user', 'openlibrary_id')
+
+
+class UserGenrePreference(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='genre_preferences')
+    genre = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'genre')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.genre}"
+
+
+class AIRecommendationChat(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_chats")
+    prompt = models.TextField()
+    response = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.created_at}"
