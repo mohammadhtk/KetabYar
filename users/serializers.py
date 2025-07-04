@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate
 from users.utils.check_password import check_repeat_password
 from users.utils.generate_code import validate_code
+from users.utils.avatar_validator import validate_avatar
 from django.contrib.auth import  get_user_model
 import logging
 logger = logging.getLogger(__name__)
@@ -44,8 +45,9 @@ class ResendActivationSerializer(serializers.Serializer):
 class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name']
-        read_only_fields = ['email']
+        fields = ['email', 'first_name', 'last_name', 'avatar']
+        read_only_fields = ['email', 'avatar']
+
 
 
 class SendResetPasswordCodeSerializer(serializers.Serializer):
@@ -92,3 +94,10 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context['request'].user
         user.set_password(self.validated_data['new_password'])
         user.save()
+
+class UserAvatarSerializer(serializers.Serializer):
+    avatar = serializers.ImageField()
+    
+    def validate_avatar(self, value):
+        validate_avatar(value)
+        return value
