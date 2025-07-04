@@ -142,9 +142,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/min',
-        'user': '100/min',
-    },
+        'user': '1000/day',
+    }
 }
 
 
@@ -234,3 +233,5 @@ LOGGING = {
         },
     },
 }
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
