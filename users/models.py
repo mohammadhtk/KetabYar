@@ -3,9 +3,8 @@ from datetime import timezone, timedelta
 
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
-
+from datetime import datetime
 import uuid
-import os
 
 # Create your models here.
 
@@ -32,7 +31,7 @@ class CustomUserManager(BaseUserManager):
 # upload profile image to media/users/profile_images
 def profile_image_upload_path(instance, filename):
     ext = filename.split('.')[-1]
-    return f'profiles/{instance.user.id}/{uuid.uuid4().hex}.{ext}'
+    return f'profiles/{instance.id}/{datetime.now().strftime("%Y/%m/%d")}/{uuid.uuid4().hex}.{ext}'
 
 class User(AbstractUser):
     username = None
