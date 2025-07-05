@@ -9,13 +9,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -26,8 +25,7 @@ SECRET_KEY = 'django-insecure-#uwt+2jomg7ni3y%zh*@8$35@71t5$sv+v%!zq(%u_wookxd0x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['mohammadhtavakoli.pythonanywhere.com','127.0.0.1']
-
+ALLOWED_HOSTS = ['mohammadhtavakoli.pythonanywhere.com', '127.0.0.1']
 
 # Application definition
 
@@ -38,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_yasg',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -78,7 +77,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
@@ -88,7 +86,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -110,7 +107,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -121,7 +117,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -137,7 +132,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'KetabYar API',
+    'DESCRIPTION': 'V1',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    'COMPONENT_SPLIT_REQUEST': True
+}
+
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',),
     'DEFAULT_THROTTLE_CLASSES': [
@@ -148,19 +155,17 @@ REST_FRAMEWORK = {
         'anon': '10/min',
         'user': '100/min',
     },
-        'DEFAULT_PARSER_CLASSES': [
+    'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
 }
 
-
-
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7*2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7 * 2),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
@@ -177,8 +182,6 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
 }
 
-
-
 CACHES = {
     "default": {
         "BACKEND": 'django.core.cache.backends.locmem.LocMemCache',
@@ -186,12 +189,9 @@ CACHES = {
     }
 }
 
-
-
 OTP_TOTP_ISSUER = "KetabYar"
 OTP_TOTP_DIGITS = 6
 OTP_TOTP_SECRET = 'django-insecure-#uwt+2jomg7ni3y%zh*@8$35@71t5$sv+v%!zq(%u_wookxd0x'
-
 
 DEFAULT_FROM_EMAIL = "amirhosseinpishroa2001@gmail.com"
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -200,8 +200,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'amirhosseinpishroa2001@gmail.com'
 EMAIL_HOST_PASSWORD = 'bzaaegcyjnwxdqgq'
-
-
 
 LOGGING = {
     'version': 1,

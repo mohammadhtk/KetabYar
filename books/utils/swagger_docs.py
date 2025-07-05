@@ -1,149 +1,151 @@
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
-limit_param = openapi.Parameter(
-    'limit',
-    in_=openapi.IN_QUERY,
+# Parameters
+limit_param = OpenApiParameter(
+    name='limit',
+    location=OpenApiParameter.QUERY,
     description="Maximum number of books to return",
-    type=openapi.TYPE_INTEGER,
-    required=False
+    required=False,
+    type=OpenApiTypes.INT
 )
 
-search_query_param = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    required=['q'],
-    properties={
-        'q': openapi.Schema(type=openapi.TYPE_STRING, description='Search query'),
+openlibrary_id_param = OpenApiParameter(
+    name='openlibrary_id',
+    location=OpenApiParameter.PATH,
+    description="OpenLibrary work ID",
+    required=True,
+    type=OpenApiTypes.STR
+)
+
+page_param = OpenApiParameter(
+    name='page',
+    location=OpenApiParameter.QUERY,
+    description="Page number",
+    required=False,
+    type=OpenApiTypes.INT,
+    default=1
+)
+
+page_size_param = OpenApiParameter(
+    name='page_size',
+    location=OpenApiParameter.QUERY,
+    description="Page size",
+    required=False,
+    type=OpenApiTypes.INT,
+    default=5
+)
+
+# ------------------- SCHEMAS -------------------
+
+books_home_schema = extend_schema(
+    summary="Get books for home page",
+    parameters=[limit_param],
+    responses={200: OpenApiResponse(description="Books list")}
+)
+
+search_books_schema = extend_schema(
+    summary="Search books",
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["q"],
+            "properties": {
+                "q": {"type": "string", "description": "Search query"}
+            }
+        }
     },
+    responses={200: OpenApiResponse(description="Books found")}
 )
 
-category_param = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    required=['category'],
-    properties={
-        'category': openapi.Schema(type=openapi.TYPE_STRING, description='OpenLibrary category path, e.g., "/subjects/science_fiction"'),
-    },
-)
-
-
-books_home_schema = swagger_auto_schema(
-    method='get',
-    manual_parameters=[limit_param],
-    operation_summary="Get books for home page"
-)
-
-search_books_schema = swagger_auto_schema(
-    method='post',
-    operation_summary="Search books",
-    request_body=search_query_param,
-    responses={200: openapi.Response(description="Books found")},
-)
-
-book_detail_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="Get book detail",
+book_detail_schema = extend_schema(
+    summary="Get book detail",
     responses={
-        200: openapi.Response(description="Book detail"),
-        404: openapi.Response(description="Book not found")
+        200: OpenApiResponse(description="Book detail"),
+        404: OpenApiResponse(description="Book not found"),
     }
 )
 
-all_categories_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="Get all categories"
+all_categories_schema = extend_schema(
+    summary="Get all categories",
+    responses={200: OpenApiResponse(description="Category list")}
 )
 
-fetch_category_books_schema = swagger_auto_schema(
-    method='post',
-    operation_summary="Fetch books by category",
-    request_body=category_param,
+fetch_category_books_schema = extend_schema(
+    summary="Fetch books by category",
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["category"],
+            "properties": {
+                "category": {"type": "string", "description": "e.g., '/subjects/science_fiction'"}
+            }
+        }
+    },
     responses={
-        200: openapi.Response(description="Books retrieved successfully"),
-        400: openapi.Response(description="Category link is required"),
+        200: OpenApiResponse(description="Books retrieved successfully"),
+        400: OpenApiResponse(description="Invalid category input")
     }
 )
 
-
-popular_books_schema = swagger_auto_schema(
-    operation_summary="Get popular books",
-    manual_parameters=[
-        openapi.Parameter(
-            'limit',
-            openapi.IN_QUERY,
-            description="Number of books to return",
-            type=openapi.TYPE_INTEGER,
-            required=False,
-            default=10
-        )
-    ]
+popular_books_schema = extend_schema(
+    summary="Get popular books",
+    parameters=[limit_param],
+    responses={200: OpenApiResponse(description="Popular books list")}
 )
 
-
-# Related books
-related_books_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="Get related books by OpenLibrary ID",
-    manual_parameters=[
-        openapi.Parameter(
-            'openlibrary_id',
-            openapi.IN_PATH,
-            description="OpenLibrary work ID",
-            type=openapi.TYPE_STRING,
-            required=True
-        )
-    ],
-    responses={200: openapi.Response(description="Related books list")}
+related_books_schema = extend_schema(
+    summary="Get related books by OpenLibrary ID",
+    parameters=[openlibrary_id_param],
+    responses={200: OpenApiResponse(description="Related books list")}
 )
 
-# User book statuses
-user_book_statuses_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="Get saved/in-progress/finished books of user",
-    responses={200: openapi.Response(description="List of user book statuses")}
+user_book_statuses_schema = extend_schema(
+    summary="Get saved/in-progress/finished books of user",
+    responses={200: OpenApiResponse(description="User book statuses")}
 )
 
-set_book_status_schema = swagger_auto_schema(
-    method='post',
-    operation_summary="Set or update a book status for user",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        required=['openlibrary_id', 'status'],
-        properties={
-            'openlibrary_id': openapi.Schema(type=openapi.TYPE_STRING, description='OpenLibrary work ID'),
-            'status': openapi.Schema(type=openapi.TYPE_STRING, enum=['saved', 'in_progress', 'finished'])
+set_book_status_schema = extend_schema(
+    summary="Set or update a book status for user",
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["openlibrary_id", "status"],
+            "properties": {
+                "openlibrary_id": {"type": "string", "description": "OpenLibrary work ID"},
+                "status": {"type": "string", "enum": ["saved", "in_progress", "finished"]}
+            }
         }
-    ),
-    responses={200: openapi.Response(description="Book status updated")}
+    },
+    responses={200: OpenApiResponse(description="Book status updated")}
 )
 
-genre_recommendations_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="Recommend books by user's favorite genres"
+genre_recommendations_schema = extend_schema(
+    summary="Recommend books by user's favorite genres",
+    responses={200: OpenApiResponse(description="Genre recommendations")}
 )
 
-history_recommendations_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="Recommend books based on user's reading history"
+history_recommendations_schema = extend_schema(
+    summary="Recommend books based on user's reading history",
+    responses={200: OpenApiResponse(description="History-based recommendations")}
 )
 
-prompt_recommendations_schema = swagger_auto_schema(
-    method='post',
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        required=['prompt'],
-        properties={
-            'prompt': openapi.Schema(type=openapi.TYPE_STRING, description='User input or question')
+prompt_recommendations_schema = extend_schema(
+    summary="Ask Gemini to recommend books for custom user question",
+    request={
+        "application/json": {
+            "type": "object",
+            "required": ["prompt"],
+            "properties": {
+                "prompt": {"type": "string", "description": "User's custom question or input"}
+            }
         }
-    ),
-    operation_summary="Ask Gemini to recommend books for custom user question"
+    },
+    responses={200: OpenApiResponse(description="AI book recommendations")}
 )
 
-chat_history_schema = swagger_auto_schema(
-    method='get',
-    operation_summary="List chat history with Gemini",
-    manual_parameters=[
-        openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, default=1),
-        openapi.Parameter('page_size', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, default=5)
-    ]
+chat_history_schema = extend_schema(
+    summary="List chat history with Gemini",
+    parameters=[page_param, page_size_param],
+    responses={200: OpenApiResponse(description="Chat history list")}
 )
-

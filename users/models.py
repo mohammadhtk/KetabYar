@@ -31,7 +31,7 @@ class CustomUserManager(BaseUserManager):
 # upload profile image to media/users/profile_images
 def profile_image_upload_path(instance, filename):
     ext = filename.split('.')[-1]
-    return f'profiles/{instance.id}/{datetime.now().strftime("%Y/%m/%d")}/{uuid.uuid4().hex}.{ext}'
+    return f'profiles/{datetime.now().strftime("%Y/%m/%d")}/{uuid.uuid4().hex}.{ext}'
 
 class User(AbstractUser):
     username = None

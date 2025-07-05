@@ -19,31 +19,20 @@ from pydoc import importfile
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import  permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from django.conf import settings
 from django.conf.urls.static import static
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Ketab YAR API",
-        default_version='v1',
-        terms_of_service="https://www.ketabyar.com",
-        contact=openapi.Contact(email=settings.EMAIL_HOST_USER),
-        license=openapi.License(name="MIT License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
     path('books/', include('books.urls')),
 
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='schema-swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='schema-redoc'),
 ]
 
 if settings.DEBUG:

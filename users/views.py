@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import serializers
-from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser, JSONParser
 
 from users.serializers import (
     RegisterSerializer,
@@ -15,13 +16,8 @@ from users.serializers import (
     ResetPasswordWithCodeSerializer,
     UserAvatarSerializer
 )
-from users.utils.check_password import check_repeat_password
 from users.utils.generate_code import validate_code
 from users.utils.send_activation import send_code_email_activation, send_code_email_reset_password
-
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-
 
 User = get_user_model()
 
@@ -32,7 +28,6 @@ from rest_framework import status
 
 class UserViewSet(viewsets.GenericViewSet):
     lookup_field = 'email'
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_permissions(self):
         if self.action in ['me', 'update_avatar', 'delete_avatar']:
@@ -57,7 +52,6 @@ class UserViewSet(viewsets.GenericViewSet):
         elif self.action == 'delete_avatar':
             return UserAvatarSerializer
         return serializers.Serializer
-
 
     @action(detail=False, methods=['post'])
     @transaction.atomic
@@ -113,7 +107,7 @@ class UserViewSet(viewsets.GenericViewSet):
     def send_reset_password_code(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         email = serializer.validated_data["email"]
         try:
             user = User.objects.get(email=email)
@@ -132,32 +126,34 @@ class UserViewSet(viewsets.GenericViewSet):
         user.save()
         return Response({"message": "Password changed."}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        request_body=UserAvatarSerializer,
-        responses={200: "Avatar updated successfully."}
+
+    @action(detail=False, methods=["get"], url_path="get-avatar")
+    def get_avatar(self, request):
+        user = request.user
+        if not user.avatar:
+            return Response({"message": "No avatar found."}, status=status.HTTP_404_NOT_FOUND)
+        avatar_url = request.build_absolute_uri(user.avatar.url)
+        return Response({"avatar_url": avatar_url}, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=UserAvatarSerializer,
+        responses={200: OpenApiResponse(description="Avatar updated successfully")},
     )
     @action(
         detail=False,
-        methods=["post"],
+        methods=["post", 'get'],
         url_path='avatar',
         permission_classes=[IsAuthenticated],
+        parser_classes=[MultiPartParser, FormParser],
     )
     def update_avatar(self, request):
         serializer = UserAvatarSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = request.user
         user.avatar = serializer.validated_data["avatar"]
         user.save()
-
         avatar_url = request.build_absolute_uri(user.avatar.url)
-        return Response({
-            "message": "Avatar updated successfully.",
-            "avatar_url": avatar_url
-        }, status=status.HTTP_200_OK)
-    
-    
-    
+        return Response({"message": "Avatar updated successfully.", "avatar_url": avatar_url})
 
     @action(detail=False, methods=["delete"])
     def delete_avatar(self, request):
