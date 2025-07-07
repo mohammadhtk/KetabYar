@@ -45,7 +45,7 @@ class ResendActivationSerializer(serializers.Serializer):
 class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'avatar']
+        fields = ['email', 'first_name', 'last_name', 'avatar', 'notifications_enabled']
         read_only_fields = ['email', 'avatar']
 
 
