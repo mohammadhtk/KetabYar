@@ -144,7 +144,6 @@ def set_or_update_book_status(user, openlibrary_id, status):
 #         }
 #         for book in books
 #     ]
-
 def get_related_books_from_book_link(book_link: str, limit: int = 5):
     # 1. گرفتن work_id
     book_link = book_link.strip('/')
@@ -196,3 +195,4 @@ def get_related_books_from_book_link(book_link: str, limit: int = 5):
         }
         for book in works if book.get("key") != f"/works/{work_id}"
     ]
+

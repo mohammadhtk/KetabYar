@@ -112,7 +112,7 @@ def set_book_status_api(request):
 
 @related_books_schema
 @api_view(['GET'])
-def related_books_view(request):
+def get_related_books_view(request):
     book_link = request.query_params.get('bookLink')
     if not book_link:
         return Response({'error': 'bookLink is required'}, status=status.HTTP_400_BAD_REQUEST)
