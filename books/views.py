@@ -112,10 +112,16 @@ def set_book_status_api(request):
 
 @related_books_schema
 @api_view(['GET'])
-def get_related_books_view(request):
-    book_link = request.query_params.get('bookLink')
-    if not book_link:
-        return Response({'error': 'bookLink is required'}, status=status.HTTP_400_BAD_REQUEST)
+def get_related_books_view(request, book_link):
+    book_link = '/' + book_link.lstrip('/')
 
     books = get_related_books_from_book_link(book_link)
-    return Response(books, status=status.HTTP_200_OK)
+
+    if not books:
+        return Response({"ok": False, "message": "No related books found."}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response({
+        "ok": True,
+        "message": "Related books fetched successfully.",
+        "data": books
+    }, status=status.HTTP_200_OK)
