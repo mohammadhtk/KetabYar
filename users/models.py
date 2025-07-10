@@ -42,6 +42,7 @@ class User(AbstractUser):
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    notifications_enabled = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
