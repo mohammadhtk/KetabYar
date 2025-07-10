@@ -144,16 +144,35 @@ def set_or_update_book_status(user, openlibrary_id, status):
 #         }
 #         for book in books
 #     ]
-def get_related_books_by_subject(openlibrary_id: str, limit: int = 5):
-    work_url = f"https://openlibrary.org/works/{openlibrary_id}.json"
-    work_res = requests.get(work_url)
 
+def get_related_books_from_book_link(book_link: str, limit: int = 5):
+    # 1. گرفتن work_id
+    book_link = book_link.strip('/')
+    edition_url = f"https://openlibrary.org/{book_link}.json"
+    edition_res = requests.get(edition_url)
+
+    if edition_res.status_code != 200:
+        return []
+
+    edition_data = edition_res.json()
+    works = edition_data.get("works")
+    if not works or not isinstance(works, list):
+        return []
+
+    work_key = works[0].get("key")  # /works/OL123W
+    if not work_key:
+        return []
+
+    work_id = work_key.strip('/').split('/')[-1]  # OL123W
+
+    # 2. گرفتن اطلاعات اثر برای استخراج subject
+    work_url = f"https://openlibrary.org/works/{work_id}.json"
+    work_res = requests.get(work_url)
     if work_res.status_code != 200:
         return []
 
     work_data = work_res.json()
     subjects = work_data.get("subjects", [])
-
     if not subjects:
         return []
 
@@ -169,10 +188,11 @@ def get_related_books_by_subject(openlibrary_id: str, limit: int = 5):
     return [
         {
             "title": book.get("title"),
-            "cover": f"https://covers.openlibrary.org/b/id/{book.get('cover_id')}-M.jpg" if book.get("cover_id") else None,
+            "cover": f"https://covers.openlibrary.org/b/id/{book.get('cover_id')}-M.jpg"
+            if book.get("cover_id") else None,
             "bookLink": book.get("key"),
             "author": book.get("authors", [{}])[0].get("name"),
             "year": book.get("first_publish_year"),
         }
-        for book in works if book.get("key") != f"/works/{openlibrary_id}"
+        for book in works if book.get("key") != f"/works/{work_id}"
     ]

@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .serializer import BookStatusSerializer
+from rest_framework import status
 from books.utils.book_service import *
 from books.utils.swagger_docs import *
 
@@ -111,7 +112,10 @@ def set_book_status_api(request):
 
 @related_books_schema
 @api_view(['GET'])
-def get_related_books_view(request, openlibrary_id):
-    limit = request.query_params.get("limit", 5)
-    books = get_related_books_by_subject(openlibrary_id, limit=int(limit))
-    return Response(books)
+def related_books_view(request):
+    book_link = request.query_params.get('bookLink')
+    if not book_link:
+        return Response({'error': 'bookLink is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    books = get_related_books_from_book_link(book_link)
+    return Response(books, status=status.HTTP_200_OK)

@@ -10,10 +10,10 @@ limit_param = OpenApiParameter(
     type=OpenApiTypes.INT
 )
 
-openlibrary_id_param = OpenApiParameter(
-    name='openlibrary_id',
-    location=OpenApiParameter.PATH,
-    description="OpenLibrary work ID",
+book_link_param = OpenApiParameter(
+    name='bookLink',
+    location=OpenApiParameter.QUERY,
+    description="OpenLibrary book link (e.g. /books/OL7353617M)",
     required=True,
     type=OpenApiTypes.STR
 )
@@ -95,8 +95,8 @@ popular_books_schema = extend_schema(
 )
 
 related_books_schema = extend_schema(
-    summary="Get related books by OpenLibrary ID",
-    parameters=[openlibrary_id_param],
+    summary="Get related books by OpenLibrary book link",
+    parameters=[book_link_param],
     responses={200: OpenApiResponse(description="Related books list")}
 )
 
