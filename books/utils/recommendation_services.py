@@ -60,7 +60,7 @@ def get_recommendations_by_history(user, limit=5):
 def ask_gemini_and_store(user, prompt):
     try:
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         response = model.generate_content(
             f"Suggest 5 books for this request:\n{prompt}\nJust list book titles with author names."
         )

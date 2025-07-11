@@ -23,7 +23,7 @@ def recommend_by_history_view(request):
 
 @prompt_recommendations_schema
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 @throttle_classes([GeminiUserThrottle])
 def recommend_by_prompt_view(request):
     prompt = request.data.get("prompt")
