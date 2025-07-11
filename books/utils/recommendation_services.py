@@ -2,6 +2,10 @@ import requests
 from books.models import UserGenrePreference, BookStatus, AIRecommendationChat
 from django.conf import settings
 import google.generativeai as genai
+import logging
+from google.api_core.exceptions import GoogleAPIError
+
+logger = logging.getLogger(__name__)
 
 def fetch_books_by_genre(genre_slug, limit=10):
     url = f"https://openlibrary.org/subjects/{genre_slug}.json?limit={limit}"
@@ -46,13 +50,30 @@ def get_recommendations_by_history(user, limit=5):
         all_books.extend(fetch_books_by_genre(genre, limit=1))
     return all_books[:limit]
 
+# def ask_gemini_and_store(user, prompt):
+#     genai.configure(api_key=settings.GEMINI_API_KEY)
+#     model = genai.GenerativeModel('gemini-pro')
+#     response = model.generate_content(f"Suggest 5 books for this request:{prompt}\nJust list book titles with author names.")
+#     reply = response.text.strip()
+#     AIRecommendationChat.objects.create(user=user, prompt=prompt, response=reply)
+#     return reply
 def ask_gemini_and_store(user, prompt):
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(f"Suggest 5 books for this request:{prompt}\nJust list book titles with author names.")
-    reply = response.text.strip()
-    AIRecommendationChat.objects.create(user=user, prompt=prompt, response=reply)
-    return reply
+    try:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(
+            f"Suggest 5 books for this request:\n{prompt}\nJust list book titles with author names."
+        )
+        reply = response.text.strip()
+        AIRecommendationChat.objects.create(user=user, prompt=prompt, response=reply)
+        return reply
+    except GoogleAPIError as e:
+        logger.error(f"Gemini API Error: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in Gemini request: {e}")
+        raise
+
 
 def get_chat_history(user, page=1, page_size=5):
     qs = AIRecommendationChat.objects.filter(user=user).order_by('-created_at')

@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from books.utils.recommendation_services import *
 from books.utils.swagger_docs import *
@@ -23,14 +23,18 @@ def recommend_by_history_view(request):
 
 @prompt_recommendations_schema
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 @throttle_classes([GeminiUserThrottle])
 def recommend_by_prompt_view(request):
     prompt = request.data.get("prompt")
     if not prompt:
         return Response({"ok": False, "message": "Prompt is required"}, status=400)
-    reply = ask_gemini_and_store(request.user, prompt)
-    return Response({"ok": True, "data": reply})
+
+    try:
+        reply = ask_gemini_and_store(request.user, prompt)
+        return Response({"ok": True, "data": reply})
+    except Exception as e:
+        return Response({"ok": False, "message": str(e)}, status=429)
 
 @chat_history_schema
 @api_view(['GET'])

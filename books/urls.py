@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .recommendation_views import *
+from books.recommendation_views import *
 
 
 urlpatterns = [
