@@ -1,6 +1,7 @@
 import requests
 from .categories import PREDEFINED_CATEGORIES
 from books.models import BookStatus
+import urllib.parse
 
 def fetch_home_books(limit=10):
     res = requests.get(f'https://openlibrary.org/search.json?q=bestseller&limit={limit}')
@@ -144,55 +145,65 @@ def set_or_update_book_status(user, openlibrary_id, status):
 #         }
 #         for book in books
 #     ]
-def get_related_books_from_book_link(book_link: str, limit: int = 5):
-    # 1. گرفتن work_id
+def get_related_books_from_book_link(book_link: str, limit: int = 10):
     book_link = book_link.strip('/')
-    edition_url = f"https://openlibrary.org/{book_link}.json"
-    edition_res = requests.get(edition_url)
 
-    if edition_res.status_code != 200:
-        return []
+    # استخراج work_id
+    if book_link.startswith("works/"):
+        work_id = book_link.split('/')[-1]
+    else:
+        # edition → استخراج work_id
+        edition_url = f"https://openlibrary.org/{book_link}.json"
+        edition_res = requests.get(edition_url)
+        if edition_res.status_code != 200:
+            return []
+        edition_data = edition_res.json()
+        works = edition_data.get("works") or []
+        if not works:
+            return []
+        work_key = works[0].get("key")
+        if not work_key:
+            return []
+        work_id = work_key.strip('/').split('/')[-1]
 
-    edition_data = edition_res.json()
-    works = edition_data.get("works")
-    if not works or not isinstance(works, list):
-        return []
-
-    work_key = works[0].get("key")  # /works/OL123W
-    if not work_key:
-        return []
-
-    work_id = work_key.strip('/').split('/')[-1]  # OL123W
-
-    # 2. گرفتن اطلاعات اثر برای استخراج subject
+    # دریافت اطلاعات work
     work_url = f"https://openlibrary.org/works/{work_id}.json"
     work_res = requests.get(work_url)
     if work_res.status_code != 200:
         return []
-
     work_data = work_res.json()
-    subjects = work_data.get("subjects", [])
-    if not subjects:
-        return []
+    subjects = work_data.get("subjects", []) or []
+    title = work_data.get("title", "") or ""
 
-    first_subject = subjects[0]
-    search_url = f"https://openlibrary.org/subjects/{first_subject.lower().replace(' ', '_')}.json?limit={limit}"
-    related_res = requests.get(search_url)
+    # انتخاب اولین موضوع انگلیسی (ASCII) با حداقل یک فاصله در اسم
+    english_subject = next(
+        (s for s in subjects if all(ord(c) < 128 for c in s) and ' ' in s),
+        None
+    )
 
-    if related_res.status_code != 200:
-        return []
+    # اگر موضوع مناسب پیدا شد، بر اساس آن کتاب‌های مرتبط را بگیر
+    if english_subject:
+        encoded = urllib.parse.quote(english_subject.lower().replace(' ', '_'))
+        search_url = f"https://openlibrary.org/subjects/{encoded}.json?limit={limit}"
+        related_res = requests.get(search_url)
+        if related_res.status_code == 200:
+            related_works = related_res.json().get("works", []) or []
+            books = [
+                {
+                    "title": b.get("title"),
+                    "cover": f"https://covers.openlibrary.org/b/id/{b.get('cover_id')}-M.jpg"
+                             if b.get("cover_id") else None,
+                    "bookLink": b.get("key"),
+                    "author": b.get("authors", [{}])[0].get("name"),
+                    "year": b.get("first_publish_year"),
+                }
+                for b in related_works
+                if b.get("key") != f"/works/{work_id}"
+            ]
+            if books:
+                return books
 
-    works = related_res.json().get("works", [])
-
-    return [
-        {
-            "title": book.get("title"),
-            "cover": f"https://covers.openlibrary.org/b/id/{book.get('cover_id')}-M.jpg"
-            if book.get("cover_id") else None,
-            "bookLink": book.get("key"),
-            "author": book.get("authors", [{}])[0].get("name"),
-            "year": book.get("first_publish_year"),
-        }
-        for book in works if book.get("key") != f"/works/{work_id}"
-    ]
+    # **fallback**: جستجو بر اساس title
+    fallback = search_books_service(title)
+    return fallback[:limit]
 
